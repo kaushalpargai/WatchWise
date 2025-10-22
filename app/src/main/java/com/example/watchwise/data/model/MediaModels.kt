@@ -25,7 +25,7 @@ data class MediaItem(
     @SerializedName("imdb_rating")
     val rating: Float?,
     @SerializedName("media_type")
-    val mediaType: String
+    val mediaType: String?
 )
 
 data class MediaDetailsResponse(
@@ -46,7 +46,7 @@ data class MediaDetailsResponse(
     @SerializedName("genre_names")
     val genres: List<String> = emptyList(),
     @SerializedName("media_type")
-    val mediaType: String
+    val mediaType: String?
 )
 
 // Domain Models
@@ -55,11 +55,11 @@ sealed class MediaType {
     object TVShow : MediaType()
     
     companion object {
-        fun fromString(type: String): MediaType {
-            return when (type.lowercase()) {
+        fun fromString(type: String?): MediaType {
+            return when (type?.lowercase()) {
                 "movie" -> Movie
-                "tv_series" -> TVShow
-                else -> Movie // Default to Movie if type is unknown
+                "tv_series", "tv" -> TVShow
+                else -> Movie // Default to Movie if type is unknown or null
             }
         }
     }
