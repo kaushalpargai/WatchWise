@@ -1,5 +1,6 @@
 package com.example.watchwise.data.repository
 
+import android.util.Log
 import com.example.watchwise.data.api.WatchModeApiService
 import com.example.watchwise.data.model.Media
 import com.example.watchwise.data.model.MediaDetails
@@ -13,7 +14,11 @@ class MediaRepositoryImpl(
     override fun getMovies(page: Int): Single<List<Media>> {
         return apiService.getMediaList("movie", page)
             .map { response ->
-                response.titles.map { mediaItem ->
+                Log.d("MediaRepository", "Movies response: ${response.titles.size} items")
+                response.titles.mapIndexed { index, mediaItem ->
+                    if (index < 3) {
+                        Log.d("MediaRepository", "Movie $index - ID: ${mediaItem.id}, Title: ${mediaItem.title}, Poster: ${mediaItem.posterUrl}")
+                    }
                     Media(
                         id = mediaItem.id,
                         title = mediaItem.title,
@@ -29,7 +34,11 @@ class MediaRepositoryImpl(
     override fun getTVShows(page: Int): Single<List<Media>> {
         return apiService.getMediaList("tv_series", page)
             .map { response ->
-                response.titles.map { mediaItem ->
+                Log.d("MediaRepository", "TV Shows response: ${response.titles.size} items")
+                response.titles.mapIndexed { index, mediaItem ->
+                    if (index < 3) {
+                        Log.d("MediaRepository", "TV Show $index - ID: ${mediaItem.id}, Title: ${mediaItem.title}, Poster: ${mediaItem.posterUrl}")
+                    }
                     Media(
                         id = mediaItem.id,
                         title = mediaItem.title,
@@ -45,6 +54,7 @@ class MediaRepositoryImpl(
     override fun getMediaDetails(mediaId: String): Single<MediaDetails> {
         return apiService.getMediaDetails(mediaId)
             .map { details ->
+                Log.d("MediaRepository", "Details for $mediaId - Title: ${details.title}, Poster: ${details.posterUrl}, MediaType: ${details.mediaType}")
                 MediaDetails(
                     id = details.id,
                     title = details.title,

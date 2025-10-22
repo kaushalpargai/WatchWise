@@ -31,7 +31,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.placeholder
 import com.google.accompanist.placeholder.shimmer
@@ -105,15 +106,40 @@ private fun DetailsContent(details: com.example.watchwise.data.model.MediaDetail
                 .fillMaxWidth()
                 .height(300.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
         ) {
-            if (details.posterUrl != null) {
-                AsyncImage(
-                    model = details.posterUrl,
-                    contentDescription = details.title,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+            SubcomposeAsyncImage(
+                model = details.posterUrl,
+                contentDescription = details.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            ) {
+                val state = painter.state
+                if (state is coil.compose.AsyncImagePainter.State.Loading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(48.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                } else if (state is coil.compose.AsyncImagePainter.State.Error) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No Image Available",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    SubcomposeAsyncImageContent()
+                }
             }
         }
 

@@ -36,7 +36,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import com.example.watchwise.data.model.Media
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.placeholder
@@ -160,15 +161,40 @@ private fun MediaCard(
                     .fillMaxWidth()
                     .height(200.dp)
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
             ) {
-                if (media.posterUrl != null) {
-                    AsyncImage(
-                        model = media.posterUrl,
-                        contentDescription = media.title,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                SubcomposeAsyncImage(
+                    model = media.posterUrl,
+                    contentDescription = media.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                ) {
+                    val state = painter.state
+                    if (state is coil.compose.AsyncImagePainter.State.Loading) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(32.dp),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    } else if (state is coil.compose.AsyncImagePainter.State.Error) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No Image",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        SubcomposeAsyncImageContent()
+                    }
                 }
             }
 
