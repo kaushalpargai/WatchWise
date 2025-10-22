@@ -12,41 +12,85 @@ class MediaRepositoryImpl(
 ) : MediaRepository {
 
     override fun getMovies(page: Int): Single<List<Media>> {
+        Log.d("MediaRepository", "Fetching movies - page: $page")
         return apiService.getMediaList("movie", page)
-            .map { response ->
+            .doOnSubscribe { Log.d("MediaRepository", "Starting movies API call") }
+            .doOnError { error -> Log.e("MediaRepository", "Error fetching movies: ${error.message}", error) }
+            .flatMap { response ->
                 Log.d("MediaRepository", "Movies response: ${response.titles.size} items")
-                response.titles.mapIndexed { index, mediaItem ->
-                    if (index < 3) {
-                        Log.d("MediaRepository", "Movie $index - ID: ${mediaItem.id}, Title: ${mediaItem.title}, Poster: ${mediaItem.posterUrl}")
-                    }
-                    Media(
-                        id = mediaItem.id,
-                        title = mediaItem.title,
-                        posterUrl = mediaItem.posterUrl,
-                        year = mediaItem.year,
-                        rating = mediaItem.rating,
-                        mediaType = MediaType.Movie
-                    )
+                
+                // Fetch details for each movie to get poster URLs
+                val detailsSingles = response.titles.map { mediaItem ->
+                    apiService.getMediaDetails(mediaItem.id)
+                        .map { details ->
+                            Media(
+                                id = mediaItem.id,
+                                title = mediaItem.title,
+                                posterUrl = details.posterUrl,
+                                year = mediaItem.year,
+                                rating = mediaItem.rating,
+                                mediaType = MediaType.Movie
+                            )
+                        }
+                        .onErrorReturn {
+                            // If details fetch fails, return media without poster
+                            Log.w("MediaRepository", "Failed to fetch details for ${mediaItem.id}: ${it.message}")
+                            Media(
+                                id = mediaItem.id,
+                                title = mediaItem.title,
+                                posterUrl = null,
+                                year = mediaItem.year,
+                                rating = mediaItem.rating,
+                                mediaType = MediaType.Movie
+                            )
+                        }
+                }
+                
+                // Combine all detail requests
+                Single.zip(detailsSingles) { results ->
+                    results.map { it as Media }
                 }
             }
     }
 
     override fun getTVShows(page: Int): Single<List<Media>> {
+        Log.d("MediaRepository", "Fetching TV shows - page: $page")
         return apiService.getMediaList("tv_series", page)
-            .map { response ->
+            .doOnSubscribe { Log.d("MediaRepository", "Starting TV shows API call") }
+            .doOnError { error -> Log.e("MediaRepository", "Error fetching TV shows: ${error.message}", error) }
+            .flatMap { response ->
                 Log.d("MediaRepository", "TV Shows response: ${response.titles.size} items")
-                response.titles.mapIndexed { index, mediaItem ->
-                    if (index < 3) {
-                        Log.d("MediaRepository", "TV Show $index - ID: ${mediaItem.id}, Title: ${mediaItem.title}, Poster: ${mediaItem.posterUrl}")
-                    }
-                    Media(
-                        id = mediaItem.id,
-                        title = mediaItem.title,
-                        posterUrl = mediaItem.posterUrl,
-                        year = mediaItem.year,
-                        rating = mediaItem.rating,
-                        mediaType = MediaType.TVShow
-                    )
+                
+                // Fetch details for each TV show to get poster URLs
+                val detailsSingles = response.titles.map { mediaItem ->
+                    apiService.getMediaDetails(mediaItem.id)
+                        .map { details ->
+                            Media(
+                                id = mediaItem.id,
+                                title = mediaItem.title,
+                                posterUrl = details.posterUrl,
+                                year = mediaItem.year,
+                                rating = mediaItem.rating,
+                                mediaType = MediaType.TVShow
+                            )
+                        }
+                        .onErrorReturn {
+                            // If details fetch fails, return media without poster
+                            Log.w("MediaRepository", "Failed to fetch details for ${mediaItem.id}: ${it.message}")
+                            Media(
+                                id = mediaItem.id,
+                                title = mediaItem.title,
+                                posterUrl = null,
+                                year = mediaItem.year,
+                                rating = mediaItem.rating,
+                                mediaType = MediaType.TVShow
+                            )
+                        }
+                }
+                
+                // Combine all detail requests
+                Single.zip(detailsSingles) { results ->
+                    results.map { it as Media }
                 }
             }
     }
