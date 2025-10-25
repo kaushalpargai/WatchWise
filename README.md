@@ -185,7 +185,7 @@ Run tests:
 
 ### Test Coverage
 
-- Repository tests with MockWebServer
+- Repository tests with Mockito
 - ViewModel state transition tests
 - Error handling tests
 
