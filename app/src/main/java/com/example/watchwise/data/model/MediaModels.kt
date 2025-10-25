@@ -49,7 +49,6 @@ data class MediaDetailsResponse(
     val mediaType: String?
 )
 
-// Domain Models
 sealed class MediaType {
     object Movie : MediaType()
     object TVShow : MediaType()
@@ -59,7 +58,7 @@ sealed class MediaType {
             return when (type?.lowercase()) {
                 "movie" -> Movie
                 "tv_series", "tv" -> TVShow
-                else -> Movie // Default to Movie if type is unknown or null
+                else -> Movie
             }
         }
     }

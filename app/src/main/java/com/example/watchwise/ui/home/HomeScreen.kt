@@ -60,7 +60,6 @@ fun HomeScreen(
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
-        // Header
         Text(
             text = "WatchWise",
             style = MaterialTheme.typography.headlineLarge,
@@ -68,7 +67,6 @@ fun HomeScreen(
             modifier = Modifier.padding(16.dp)
         )
 
-        // Tab Row
         TabRow(
             selectedTabIndex = uiState.selectedTab.ordinal,
             modifier = Modifier
@@ -94,7 +92,6 @@ fun HomeScreen(
             }
         }
 
-        // Content
         when {
             uiState.isLoading -> {
                 ShimmerLoadingGrid()
@@ -109,7 +106,6 @@ fun HomeScreen(
                 EmptyState()
             }
             else -> {
-                // Use key to preserve separate scroll states for each tab
                 key(uiState.selectedTab) {
                     MediaGrid(
                         mediaList = uiState.mediaList,
@@ -165,7 +161,6 @@ private fun MediaCard(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Poster Image
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -208,7 +203,6 @@ private fun MediaCard(
                 }
             }
 
-            // Title and Info
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -17,7 +17,7 @@ import androidx.core.view.WindowCompat
 
 @Composable
 fun WatchWiseTheme(
-    darkTheme: Boolean = true, // Default to dark theme
+    darkTheme: Boolean = true,
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {

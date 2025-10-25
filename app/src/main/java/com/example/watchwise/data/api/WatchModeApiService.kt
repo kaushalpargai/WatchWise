@@ -23,8 +23,8 @@ interface WatchModeApiService {
     @GET("autocomplete-search/")
     fun searchTitles(
         @Query("search_value") searchValue: String = "a",
-        @Query("search_type") searchType: Int = 1, // 1 for titles only, 2 for people only, 3 for both
-        @Query("types") mediaTypes: String? = null, // "movie,tv_series" for both, "movie" or "tv_series" for specific
+        @Query("search_type") searchType: Int = 1,
+        @Query("types") mediaTypes: String? = null,
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
     ): Single<MediaListResponse>

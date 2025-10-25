@@ -19,7 +19,6 @@ class MediaRepositoryImpl(
             .flatMap { response ->
                 Log.d("MediaRepository", "Movies response: ${response.titles.size} items")
                 
-                // Fetch details for each movie to get poster URLs
                 val detailsSingles = response.titles.map { mediaItem ->
                     apiService.getMediaDetails(mediaItem.id)
                         .map { details ->
@@ -33,7 +32,6 @@ class MediaRepositoryImpl(
                             )
                         }
                         .onErrorReturn {
-                            // If details fetch fails, return media without poster
                             Log.w("MediaRepository", "Failed to fetch details for ${mediaItem.id}: ${it.message}")
                             Media(
                                 id = mediaItem.id,
@@ -46,7 +44,6 @@ class MediaRepositoryImpl(
                         }
                 }
                 
-                // Combine all detail requests
                 Single.zip(detailsSingles) { results ->
                     results.map { it as Media }
                 }
@@ -61,7 +58,6 @@ class MediaRepositoryImpl(
             .flatMap { response ->
                 Log.d("MediaRepository", "TV Shows response: ${response.titles.size} items")
                 
-                // Fetch details for each TV show to get poster URLs
                 val detailsSingles = response.titles.map { mediaItem ->
                     apiService.getMediaDetails(mediaItem.id)
                         .map { details ->
@@ -75,7 +71,6 @@ class MediaRepositoryImpl(
                             )
                         }
                         .onErrorReturn {
-                            // If details fetch fails, return media without poster
                             Log.w("MediaRepository", "Failed to fetch details for ${mediaItem.id}: ${it.message}")
                             Media(
                                 id = mediaItem.id,
@@ -88,7 +83,6 @@ class MediaRepositoryImpl(
                         }
                 }
                 
-                // Combine all detail requests
                 Single.zip(detailsSingles) { results ->
                     results.map { it as Media }
                 }
@@ -114,8 +108,6 @@ class MediaRepositoryImpl(
     }
 
     override fun searchMedia(query: String, type: MediaType?): Single<List<Media>> {
-        // This is a placeholder. The actual implementation would use a search endpoint if available
-        // For now, we'll return an empty list
         return Single.just(emptyList())
     }
 }

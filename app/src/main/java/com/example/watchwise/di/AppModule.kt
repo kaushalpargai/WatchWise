@@ -16,15 +16,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 val appModule = module {
-    // Network
     single { provideOkHttpClient() }
     single { provideRetrofit(get()) }
     single { provideApiService(get()) }
     
-    // Repository
     single<MediaRepository> { MediaRepositoryImpl(get()) }
     
-    // ViewModels
     viewModel { HomeViewModel(get()) }
     viewModel { DetailsViewModel(get(), get()) }
 }

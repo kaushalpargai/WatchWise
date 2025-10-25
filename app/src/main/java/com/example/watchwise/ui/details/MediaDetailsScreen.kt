@@ -53,7 +53,6 @@ fun MediaDetailsScreen(
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
-        // Top Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -76,7 +75,6 @@ fun MediaDetailsScreen(
             )
         }
 
-        // Content
         when {
             uiState.isLoading -> {
                 ShimmerDetailsContent()
@@ -102,7 +100,6 @@ private fun DetailsContent(details: com.example.watchwise.data.model.MediaDetail
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // Poster Image
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -145,7 +142,6 @@ private fun DetailsContent(details: com.example.watchwise.data.model.MediaDetail
             }
         }
 
-        // Title
         Text(
             text = details.title,
             style = MaterialTheme.typography.headlineMedium,
@@ -153,7 +149,6 @@ private fun DetailsContent(details: com.example.watchwise.data.model.MediaDetail
             modifier = Modifier.padding(top = 16.dp)
         )
 
-        // Rating and Year
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -177,7 +172,6 @@ private fun DetailsContent(details: com.example.watchwise.data.model.MediaDetail
             }
         }
 
-        // Release Date
         if (details.releaseDate != null) {
             Text(
                 text = "Release Date: ${details.releaseDate}",
@@ -187,7 +181,6 @@ private fun DetailsContent(details: com.example.watchwise.data.model.MediaDetail
             )
         }
 
-        // Genres
         if (details.genres.isNotEmpty()) {
             Text(
                 text = "Genres",
@@ -204,7 +197,6 @@ private fun DetailsContent(details: com.example.watchwise.data.model.MediaDetail
             )
         }
 
-        // Overview
         Text(
             text = "Overview",
             style = MaterialTheme.typography.titleMedium,
@@ -220,7 +212,6 @@ private fun DetailsContent(details: com.example.watchwise.data.model.MediaDetail
             lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
         )
 
-        // Spacer
         Box(modifier = Modifier.height(32.dp))
     }
 }
@@ -233,7 +224,6 @@ private fun ShimmerDetailsContent() {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Poster Shimmer
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -248,7 +238,6 @@ private fun ShimmerDetailsContent() {
                 )
         )
 
-        // Title Shimmer
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
@@ -263,7 +252,6 @@ private fun ShimmerDetailsContent() {
                 )
         )
 
-        // Info Shimmer
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.6f)
@@ -278,7 +266,6 @@ private fun ShimmerDetailsContent() {
                 )
         )
 
-        // Overview Title Shimmer
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.4f)
@@ -293,7 +280,6 @@ private fun ShimmerDetailsContent() {
                 )
         )
 
-        // Overview Text Shimmer
         repeat(3) {
             Box(
                 modifier = Modifier

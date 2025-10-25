@@ -16,6 +16,5 @@ class WatchWiseApp : Application() {
     }
 }
 
-// Extension property to get application context from anywhere
 val Context.app: WatchWiseApp
     get() = applicationContext as WatchWiseApp

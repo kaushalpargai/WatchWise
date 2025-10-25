@@ -38,7 +38,6 @@ class HomeViewModel(
     private fun loadMedia() {
         _uiState.update { it.copy(isLoading = true, error = null) }
 
-        // Fetch both movies and TV shows simultaneously using Single.zip
         Single.zip(
             repository.getMovies(),
             repository.getTVShows()

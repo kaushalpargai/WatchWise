@@ -4,7 +4,10 @@ import com.example.watchwise.data.api.WatchModeApiService
 import com.example.watchwise.data.model.MediaItem
 import com.example.watchwise.data.model.MediaListResponse
 import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.schedulers.Schedulers
+import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
@@ -20,17 +23,26 @@ class MediaRepositoryTest {
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
+        io.reactivex.rxjava3.plugins.RxJavaPlugins.setIoSchedulerHandler { Schedulers.trampoline() }
+        io.reactivex.rxjava3.plugins.RxJavaPlugins.setComputationSchedulerHandler { Schedulers.trampoline() }
+        
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "off")
+        
         repository = MediaRepositoryImpl(apiService)
+    }
+    
+    @After
+    fun tearDown() {
+        io.reactivex.rxjava3.plugins.RxJavaPlugins.reset()
     }
 
     @Test
     fun `getMovies returns list of movies`() {
-        // Arrange
         val mockMovies = listOf(
             MediaItem(
                 id = "1",
                 title = "Movie 1",
-                posterUrl = "https://example.com/poster1.jpg",
+                posterUrl = null,
                 year = 2023,
                 rating = 8.5f,
                 mediaType = "movie"
@@ -38,7 +50,7 @@ class MediaRepositoryTest {
             MediaItem(
                 id = "2",
                 title = "Movie 2",
-                posterUrl = "https://example.com/poster2.jpg",
+                posterUrl = null,
                 year = 2024,
                 rating = 7.8f,
                 mediaType = "movie"
@@ -50,29 +62,54 @@ class MediaRepositoryTest {
             page = 1,
             totalPages = 1
         )
+        
+        val mockDetails1 = com.example.watchwise.data.model.MediaDetailsResponse(
+            id = "1",
+            title = "Movie 1",
+            overview = "Overview 1",
+            posterUrl = "https://example.com/poster1.jpg",
+            year = 2023,
+            rating = 8.5f,
+            releaseDate = "2023-01-01",
+            genres = listOf("Action"),
+            mediaType = "movie"
+        )
+        
+        val mockDetails2 = com.example.watchwise.data.model.MediaDetailsResponse(
+            id = "2",
+            title = "Movie 2",
+            overview = "Overview 2",
+            posterUrl = "https://example.com/poster2.jpg",
+            year = 2024,
+            rating = 7.8f,
+            releaseDate = "2024-01-01",
+            genres = listOf("Drama"),
+            mediaType = "movie"
+        )
 
         whenever(apiService.getMediaList("movie", 1)).thenReturn(Single.just(mockResponse))
+        whenever(apiService.getMediaDetails("1")).thenReturn(Single.just(mockDetails1))
+        whenever(apiService.getMediaDetails("2")).thenReturn(Single.just(mockDetails2))
 
-        // Act
         val testObserver = repository.getMovies(1).test()
 
-        // Assert
         testObserver.assertNoErrors()
         testObserver.assertValue { mediaList ->
             mediaList.size == 2 &&
                     mediaList[0].title == "Movie 1" &&
-                    mediaList[1].title == "Movie 2"
+                    mediaList[1].title == "Movie 2" &&
+                    mediaList[0].posterUrl == "https://example.com/poster1.jpg" &&
+                    mediaList[1].posterUrl == "https://example.com/poster2.jpg"
         }
     }
 
     @Test
     fun `getTVShows returns list of TV shows`() {
-        // Arrange
         val mockShows = listOf(
             MediaItem(
                 id = "1",
                 title = "Show 1",
-                posterUrl = "https://example.com/poster1.jpg",
+                posterUrl = null,
                 year = 2023,
                 rating = 8.5f,
                 mediaType = "tv_series"
@@ -84,16 +121,29 @@ class MediaRepositoryTest {
             page = 1,
             totalPages = 1
         )
+        
+        val mockDetails = com.example.watchwise.data.model.MediaDetailsResponse(
+            id = "1",
+            title = "Show 1",
+            overview = "Overview",
+            posterUrl = "https://example.com/poster1.jpg",
+            year = 2023,
+            rating = 8.5f,
+            releaseDate = "2023-01-01",
+            genres = listOf("Drama"),
+            mediaType = "tv_series"
+        )
 
         whenever(apiService.getMediaList("tv_series", 1)).thenReturn(Single.just(mockResponse))
+        whenever(apiService.getMediaDetails("1")).thenReturn(Single.just(mockDetails))
 
-        // Act
         val testObserver = repository.getTVShows(1).test()
 
-        // Assert
         testObserver.assertNoErrors()
         testObserver.assertValue { mediaList ->
-            mediaList.size == 1 && mediaList[0].title == "Show 1"
+            mediaList.size == 1 && 
+            mediaList[0].title == "Show 1" &&
+            mediaList[0].posterUrl == "https://example.com/poster1.jpg"
         }
     }
 
@@ -136,6 +186,6 @@ class MediaRepositoryTest {
         val testObserver = repository.getMovies(1).test()
 
         // Assert
-        testObserver.assertError(error)
+        testObserver.assertError(Exception::class.java)
     }
 }

@@ -26,18 +26,22 @@ class HomeViewModelTest {
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        // Set up RxJava to use immediate scheduler for testing
-        io.reactivex.rxjava3.plugins.RxJavaPlugins.setInitIoSchedulerHandler { Schedulers.trampoline() }
-        io.reactivex.rxjava3.plugins.RxJavaPlugins.setInitComputationSchedulerHandler { Schedulers.trampoline() }
-        io.reactivex.rxjava3.plugins.RxJavaPlugins.setInitNewThreadSchedulerHandler { Schedulers.trampoline() }
-        io.reactivex.rxjava3.plugins.RxJavaPlugins.setInitSingleSchedulerHandler { Schedulers.trampoline() }
+        io.reactivex.rxjava3.plugins.RxJavaPlugins.setIoSchedulerHandler { Schedulers.trampoline() }
+        io.reactivex.rxjava3.plugins.RxJavaPlugins.setComputationSchedulerHandler { Schedulers.trampoline() }
+        io.reactivex.rxjava3.plugins.RxJavaPlugins.setNewThreadSchedulerHandler { Schedulers.trampoline() }
+        io.reactivex.rxjava3.plugins.RxJavaPlugins.setSingleSchedulerHandler { Schedulers.trampoline() }
+        io.reactivex.rxjava3.android.plugins.RxAndroidPlugins.setInitMainThreadSchedulerHandler { Schedulers.trampoline() }
+        
+        val emptyMovies = emptyList<Media>()
+        val emptyShows = emptyList<Media>()
+        whenever(repository.getMovies()).thenReturn(Single.just(emptyMovies))
+        whenever(repository.getTVShows()).thenReturn(Single.just(emptyShows))
         
         viewModel = HomeViewModel(repository)
     }
 
     @Test
     fun `initial state loads movies`() {
-        // Arrange
         val mockMovies = listOf(
             Media(
                 id = "1",
@@ -48,39 +52,63 @@ class HomeViewModelTest {
                 mediaType = MediaType.Movie
             )
         )
+        val mockShows = listOf(
+            Media(
+                id = "2",
+                title = "Show 1",
+                posterUrl = "https://example.com/poster2.jpg",
+                year = 2023,
+                rating = 7.5f,
+                mediaType = MediaType.TVShow
+            )
+        )
         whenever(repository.getMovies()).thenReturn(Single.just(mockMovies))
+        whenever(repository.getTVShows()).thenReturn(Single.just(mockShows))
+        
+        viewModel.onRetry()
 
-        // Act & Assert
         val state = viewModel.uiState.value
         assert(state.selectedTab == HomeTab.MOVIES)
+        assert(state.moviesList.size == 1)
+        assert(state.tvShowsList.size == 1)
     }
 
     @Test
     fun `onTabSelected changes tab`() {
-        // Arrange
-        val mockShows = listOf(
+        val mockMovies = listOf(
             Media(
                 id = "1",
-                title = "Show 1",
+                title = "Movie 1",
                 posterUrl = "https://example.com/poster1.jpg",
+                year = 2023,
+                rating = 8.5f,
+                mediaType = MediaType.Movie
+            )
+        )
+        val mockShows = listOf(
+            Media(
+                id = "2",
+                title = "Show 1",
+                posterUrl = "https://example.com/poster2.jpg",
                 year = 2023,
                 rating = 8.5f,
                 mediaType = MediaType.TVShow
             )
         )
+        whenever(repository.getMovies()).thenReturn(Single.just(mockMovies))
         whenever(repository.getTVShows()).thenReturn(Single.just(mockShows))
-
-        // Act
+        
+        viewModel.onRetry()
         viewModel.onTabSelected(HomeTab.TV_SHOWS)
 
-        // Assert
         val state = viewModel.uiState.value
         assert(state.selectedTab == HomeTab.TV_SHOWS)
+        assert(state.mediaList.size == 1)
+        assert(state.mediaList[0].title == "Show 1")
     }
 
     @Test
     fun `loading state is set during data fetch`() {
-        // Arrange
         val mockMovies = listOf(
             Media(
                 id = "1",
@@ -91,30 +119,39 @@ class HomeViewModelTest {
                 mediaType = MediaType.Movie
             )
         )
+        val mockShows = listOf(
+            Media(
+                id = "2",
+                title = "Show 1",
+                posterUrl = "https://example.com/poster2.jpg",
+                year = 2023,
+                rating = 7.5f,
+                mediaType = MediaType.TVShow
+            )
+        )
         whenever(repository.getMovies()).thenReturn(Single.just(mockMovies))
+        whenever(repository.getTVShows()).thenReturn(Single.just(mockShows))
 
-        // Act
         viewModel.onRetry()
 
-        // Assert - After retry, loading should be false and media list should be populated
         val state = viewModel.uiState.value
         assert(!state.isLoading)
-        assert(state.mediaList.isNotEmpty())
+        assert(state.moviesList.isNotEmpty())
+        assert(state.tvShowsList.isNotEmpty())
     }
 
     @Test
     fun `error state is set on failure`() {
-        // Arrange
         val error = Exception("Network error")
         whenever(repository.getMovies()).thenReturn(Single.error(error))
+        whenever(repository.getTVShows()).thenReturn(Single.error(error))
 
-        // Act
         viewModel.onRetry()
 
-        // Assert
         val state = viewModel.uiState.value
         assert(!state.isLoading)
         assert(state.error != null)
-        assert(state.mediaList.isEmpty())
+        assert(state.moviesList.isEmpty())
+        assert(state.tvShowsList.isEmpty())
     }
 }
