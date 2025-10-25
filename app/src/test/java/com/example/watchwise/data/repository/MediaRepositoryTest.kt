@@ -149,7 +149,6 @@ class MediaRepositoryTest {
 
     @Test
     fun `getMediaDetails returns media details`() {
-        // Arrange
         val mockDetails = com.example.watchwise.data.model.MediaDetailsResponse(
             id = "1",
             title = "Movie Title",
@@ -164,10 +163,8 @@ class MediaRepositoryTest {
 
         whenever(apiService.getMediaDetails("1")).thenReturn(Single.just(mockDetails))
 
-        // Act
         val testObserver = repository.getMediaDetails("1").test()
 
-        // Assert
         testObserver.assertNoErrors()
         testObserver.assertValue { details ->
             details.title == "Movie Title" &&
@@ -178,14 +175,11 @@ class MediaRepositoryTest {
 
     @Test
     fun `getMovies handles error`() {
-        // Arrange
         val error = Exception("Network error")
         whenever(apiService.getMediaList("movie", 1)).thenReturn(Single.error(error))
 
-        // Act
         val testObserver = repository.getMovies(1).test()
 
-        // Assert
         testObserver.assertError(Exception::class.java)
     }
 }
