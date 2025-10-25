@@ -1,5 +1,6 @@
 package com.example.watchwise.ui.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -30,9 +33,13 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,12 +54,27 @@ import com.google.accompanist.placeholder.placeholder
 import com.google.accompanist.placeholder.shimmer
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     onMediaClick: (String) -> Unit,
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val pagerState = rememberPagerState(pageCount = { HomeTab.values().size })
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            viewModel.onTabSelected(HomeTab.values()[page])
+        }
+    }
+
+    LaunchedEffect(uiState.selectedTab) {
+        if (pagerState.currentPage != uiState.selectedTab.ordinal) {
+            pagerState.animateScrollToPage(uiState.selectedTab.ordinal)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -77,7 +99,12 @@ fun HomeScreen(
             HomeTab.values().forEachIndexed { index, tab ->
                 Tab(
                     selected = uiState.selectedTab.ordinal == index,
-                    onClick = { viewModel.onTabSelected(tab) },
+                    onClick = {
+                        viewModel.onTabSelected(tab)
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                    },
                     text = {
                         Text(
                             text = if (tab == HomeTab.MOVIES) "Movies" else "TV Shows",
@@ -92,23 +119,32 @@ fun HomeScreen(
             }
         }
 
-        when {
-            uiState.isLoading -> {
-                ShimmerLoadingGrid()
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            val currentTab = HomeTab.values()[page]
+            val mediaList = when (currentTab) {
+                HomeTab.MOVIES -> uiState.moviesList
+                HomeTab.TV_SHOWS -> uiState.tvShowsList
             }
-            uiState.error != null -> {
-                ErrorState(
-                    error = uiState.error ?: "Unknown error",
-                    onRetry = { viewModel.onRetry() }
-                )
-            }
-            uiState.mediaList.isEmpty() -> {
-                EmptyState()
-            }
-            else -> {
-                key(uiState.selectedTab) {
+
+            when {
+                uiState.isLoading -> {
+                    ShimmerLoadingGrid()
+                }
+                uiState.error != null -> {
+                    ErrorState(
+                        error = uiState.error ?: "Unknown error",
+                        onRetry = { viewModel.onRetry() }
+                    )
+                }
+                mediaList.isEmpty() -> {
+                    EmptyState()
+                }
+                else -> {
                     MediaGrid(
-                        mediaList = uiState.mediaList,
+                        mediaList = mediaList,
                         onMediaClick = onMediaClick
                     )
                 }
