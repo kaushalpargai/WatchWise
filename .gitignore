@@ -97,3 +97,15 @@ Thumbs.db
 *.swp
 *~
 .directory
+
+# Documentation and helper files (keep local only)
+CHECKLIST.md
+CONTRIBUTING.md
+DEMO_VIDEO_GUIDE.md
+FINAL_SUMMARY.txt
+PROJECT_SUMMARY.md
+API_DOCUMENTATION.md
+QUICKSTART.md
+SETUP.md
+push-to-github.ps1
+local.properties.example
