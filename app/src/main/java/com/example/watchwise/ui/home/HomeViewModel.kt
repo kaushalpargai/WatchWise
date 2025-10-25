@@ -35,6 +35,10 @@ class HomeViewModel(
         loadMedia()
     }
 
+    fun clearSnackbar() {
+        _uiState.update { it.copy(snackbarMessage = null) }
+    }
+
     private fun loadMedia() {
         _uiState.update { it.copy(isLoading = true, error = null) }
 
@@ -53,15 +57,24 @@ class HomeViewModel(
                             isLoading = false,
                             moviesList = movies,
                             tvShowsList = tvShows,
-                            error = null
+                            error = null,
+                            snackbarMessage = null
                         )
                     }
                 },
                 { error ->
+                    val isNetworkError = error.message?.contains("Unable to resolve host", ignoreCase = true) == true ||
+                            error.message?.contains("No address associated", ignoreCase = true) == true ||
+                            error.message?.contains("network", ignoreCase = true) == true ||
+                            error is java.net.UnknownHostException ||
+                            error is java.net.SocketTimeoutException ||
+                            error is java.io.IOException
+                    
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = error.message ?: "An unknown error occurred"
+                            error = if (!isNetworkError) error.message ?: "An unknown error occurred" else null,
+                            snackbarMessage = if (isNetworkError) "Please check your network" else null
                         )
                     }
                 }
@@ -80,7 +93,8 @@ data class HomeUiState(
     val moviesList: List<Media> = emptyList(),
     val tvShowsList: List<Media> = emptyList(),
     val selectedTab: HomeTab = HomeTab.MOVIES,
-    val error: String? = null
+    val error: String? = null,
+    val snackbarMessage: String? = null
 ) {
     val mediaList: List<Media>
         get() = when (selectedTab) {

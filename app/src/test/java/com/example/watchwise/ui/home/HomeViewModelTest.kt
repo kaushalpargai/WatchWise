@@ -150,7 +150,7 @@ class HomeViewModelTest {
 
         val state = viewModel.uiState.value
         assert(!state.isLoading)
-        assert(state.error != null)
+        assert(state.snackbarMessage == "Please check your network")
         assert(state.moviesList.isEmpty())
         assert(state.tvShowsList.isEmpty())
     }

@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -37,6 +41,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.launch
@@ -63,6 +68,7 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val pagerState = rememberPagerState(pageCount = { HomeTab.values().size })
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
@@ -76,12 +82,30 @@ fun HomeScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
-    ) {
+    LaunchedEffect(uiState.snackbarMessage) {
+        uiState.snackbarMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearSnackbar()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .statusBarsPadding()
+        ) {
         Text(
             text = "WatchWise",
             style = MaterialTheme.typography.headlineLarge,
@@ -149,6 +173,7 @@ fun HomeScreen(
                     )
                 }
             }
+        }
         }
     }
 }
