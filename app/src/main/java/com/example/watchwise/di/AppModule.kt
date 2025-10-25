@@ -6,6 +6,7 @@ import com.example.watchwise.data.repository.MediaRepository
 import com.example.watchwise.data.repository.MediaRepositoryImpl
 import com.example.watchwise.ui.details.DetailsViewModel
 import com.example.watchwise.ui.home.HomeViewModel
+import com.example.watchwise.util.NetworkMonitor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -21,6 +22,7 @@ val appModule = module {
     single { provideApiService(get()) }
     
     single<MediaRepository> { MediaRepositoryImpl(get()) }
+    single { NetworkMonitor(get()) }
     
     viewModel { HomeViewModel(get()) }
     viewModel { DetailsViewModel(get(), get()) }
