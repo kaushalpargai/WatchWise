@@ -29,7 +29,6 @@ class HomeViewModel(
 
     fun onTabSelected(tab: HomeTab) {
         _uiState.update { it.copy(selectedTab = tab) }
-        loadMedia()
     }
 
     fun onRetry() {
@@ -39,20 +38,22 @@ class HomeViewModel(
     private fun loadMedia() {
         _uiState.update { it.copy(isLoading = true, error = null) }
 
-        val mediaSingle = when (uiState.value.selectedTab) {
-            HomeTab.MOVIES -> repository.getMovies()
-            HomeTab.TV_SHOWS -> repository.getTVShows()
+        // Fetch both movies and TV shows simultaneously using Single.zip
+        Single.zip(
+            repository.getMovies(),
+            repository.getTVShows()
+        ) { movies, tvShows ->
+            Pair(movies, tvShows)
         }
-
-        mediaSingle
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
-                { mediaList ->
+                { (movies, tvShows) ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            mediaList = mediaList,
+                            moviesList = movies,
+                            tvShowsList = tvShows,
                             error = null
                         )
                     }
@@ -77,10 +78,17 @@ class HomeViewModel(
 
 data class HomeUiState(
     val isLoading: Boolean = false,
-    val mediaList: List<Media> = emptyList(),
+    val moviesList: List<Media> = emptyList(),
+    val tvShowsList: List<Media> = emptyList(),
     val selectedTab: HomeTab = HomeTab.MOVIES,
     val error: String? = null
-)
+) {
+    val mediaList: List<Media>
+        get() = when (selectedTab) {
+            HomeTab.MOVIES -> moviesList
+            HomeTab.TV_SHOWS -> tvShowsList
+        }
+}
 
 enum class HomeTab {
     MOVIES, TV_SHOWS

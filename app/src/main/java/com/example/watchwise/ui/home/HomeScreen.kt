@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -31,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -107,10 +109,13 @@ fun HomeScreen(
                 EmptyState()
             }
             else -> {
-                MediaGrid(
-                    mediaList = uiState.mediaList,
-                    onMediaClick = onMediaClick
-                )
+                // Use key to preserve separate scroll states for each tab
+                key(uiState.selectedTab) {
+                    MediaGrid(
+                        mediaList = uiState.mediaList,
+                        onMediaClick = onMediaClick
+                    )
+                }
             }
         }
     }
@@ -121,8 +126,11 @@ private fun MediaGrid(
     mediaList: List<Media>,
     onMediaClick: (String) -> Unit
 ) {
+    val gridState = rememberLazyGridState()
+    
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
+        state = gridState,
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp),
